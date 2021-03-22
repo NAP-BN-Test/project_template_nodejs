@@ -64,15 +64,38 @@ const getYoutubeChannelId = require('get-youtube-channel-id');
 const passport = require('passport')
 module.exports = {
     youtube: (res, req) => {
-        // Load client secrets from a local file.
-        fs.readFile('C:/images_services/ageless_sendmail/client_secret.json', function processClientSecrets(err, content) {
-            if (err) {
-                console.log('Error loading client secret file: ' + err);
-                return;
+        var google = require('googleapis');
+        var OAuth2 = google.auth.OAuth2;
+        var oauth2Client = new OAuth2(
+            '799271801880-mdadv0f4rp7854rkb456fa25osspnu7c.apps.googleusercontent.com',
+            'X8yPFFhHYCLwRKLmM4EoBPSC',
+            'http://localhost:5000/oauthcallback'
+        );
+        var youtube = google.youtube({
+            version: 'v3',
+            auth: oauth2Client
+        });
+        youtube.playlistItems.insert({
+            part: 'id,snippet',
+            resource: {
+                snippet: {
+                    playlistId: "YOUR_PLAYLIST_ID",
+                    resourceId: {
+                        videoId: "THE_VIDEO_ID_THAT_YOU_WANT_TO_ADD",
+                        kind: "youtube#video"
+                    }
+                }
             }
-            console.log(JSON.parse(content));
-            // Authorize a client with the loaded credentials, then call the YouTube API.
-            // authorize(JSON.parse(content), getChannel);
+        }, function (err, data, response) {
+            if (err) {
+                lien.end('Error: ' + err);
+            }
+            else if (data) {
+                lien.end(data);
+            }
+            if (response) {
+                console.log('Status code: ' + response.statusCode);
+            }
         });
     },
     youtubev2: (res, req) => {
@@ -113,26 +136,41 @@ module.exports = {
         })();
     },
     youtubev3: (res, req) => {
-        const { google } = require('googleapis');
-        const youtube = google.youtube('v3');
+        const ytlist = require('youtube-playlist');
 
-        youtube.playlistItems.list({
-            key: 'AIzaSyAtCI4qXGCuc4OfZbqYPjH0QCXWFnNwCPA',
-            part: 'id,snippet',
-            playlistId: 'PLvxLmGsmqdZc-GYVeLhS0N_6jfrzEleQm',
-            maxResult: 10,
-        }, (err, results) => {
-            console.log(err ? err.message : results.items[0].snippet);
+        const url = 'https://www.youtube.com/playlist?list=PLzXDRSq8o2GNnjHqr3z6P1LRFGw3RY0fB';
+
+        ytlist(url, 'id').then(res => {
+            console.log(res);
+            /* Object
+            { data:
+             { playlist:
+                [ 'https://youtube.com/watch?v=bgU7FeiWKzc',
+                  'https://youtube.com/watch?v=3PUVr8jFMGg',
+                  'https://youtube.com/watch?v=3pXVHRT-amw',
+                  'https://youtube.com/watch?v=KOVc5o5kURE' ] } }
+             */
         });
     },
     // &order=viewCount
     // "nextPageToken": "CAIQAA", thay đổi vào pageToken=CAIQAA sẽ next trang
     // "prevPageToken": "CAEQAQ",
+    // list=PLzXDRSq8o2GNnjHqr3z6P1LRFGw3RY0fB
+    // channelId=UCpd1Gf-SZjc_5ce5vVq5FTg tìm kiếm theo chanel
+    // q=Preyta& tìm kiếm theo key
+    //  https://www.googleapis.com/youtube/v3/search?key=AIzaSyCwwxGuObftytgmOoogEoAyNC0TMZwnOKI&channelId=UCpd1Gf-SZjc_5ce5vVq5FTg&part=snippet,id&order=date&maxResults=10&q=Preyta&list=PLzXDRSq8o2GNnjHqr3z6P1LRFGw3RY0fB&type=video&pageToken=CAIQAA
     youtubev4: async (req, res) => {
-        await axios.get(`https://www.googleapis.com/youtube/v3/search?key=AIzaSyCwwxGuObftytgmOoogEoAyNC0TMZwnOKI&channelId=UC7tPk1F9H5e2vGUmTDlz9nQ&part=snippet,id&order=date&maxResults=10&type=video&pageToken=CAIQAA`).then(data => {
+        await axios.get(`https://www.googleapis.com/youtube/v3/search?key=AIzaSyCwwxGuObftytgmOoogEoAyNC0TMZwnOKI&channelId=UCpd1Gf-SZjc_5ce5vVq5FTg&part=snippet,id&order=date&maxResults=10&type=video&pageToken=CAIQAA`).then(data => {
             if (data) {
+                var array = [];
+                data.data.items.forEach(item => {
+                    array.push({
+                        name: item.snippet.title,
+                    })
+                })
+                // console.log(data);
                 var result = {
-                    array: data.data,
+                    array: array,
                     all: data.data.items.length
                 }
                 res.json(result);

@@ -4,4 +4,6 @@ module.exports = function (app) {
 
     app.route('/youtube').post(youtube.youtubev4);
 
+    app.route('/youtube3').post(youtube.youtubev3);
+
 }
