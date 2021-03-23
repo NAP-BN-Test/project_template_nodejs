@@ -98,69 +98,11 @@ module.exports = {
             }
         });
     },
-    youtubev2: (res, req) => {
-        // var opts = {
-        //     maxResults: 100,
-        //     key: 'AIzaSyAtCI4qXGCuc4OfZbqYPjH0QCXWFnNwCPA'
-        // };
-        // search('8291129582155939458 ', opts, function (err, results) {
-        //     if (err) return console.log(err);
-
-        //     // console.dir(results.length);
-        //     req.json(results)
-        // });
-        var url = 'https://www.youtube.com/channel/UCqIkpLdlBmqk1JTKSMUdJFw';
-        // var url = 'https://www.youtube.com/channel/UCFW28bvTsD-a9HKTuLHqepQ';
-        // AIzaSyCwwxGuObftytgmOoogEoAyNC0TMZwnOKI:  Cao Nguyen
-        var result = false;
-        // ypi.channelVideos("AIzaSyCwwxGuObftytgmOoogEoAyNC0TMZwnOKI", 'UCGALuZglid2HUDS859HifOg', function (channelItems) {
-        //     console.log(channelItems, 1);
-        // });
-        (async function () {
-            result = await getYoutubeChannelId(url);
-            console.log(result);
-
-            if (result !== false) {
-                if (result.error) {
-                    console.log(`Have a error, try again`);
-                } else {
-
-                    ypi.channelVideos("AIzaSyCwwxGuObftytgmOoogEoAyNC0TMZwnOKI", result.id, function (channelItems) {
-                        console.log(channelItems, 1);
-                    });
-                    console.log(`Channel ID: ${result.id}`);
-                }
-            } else {
-                console.log('Invalid youtube channel URL');
-            }
-        })();
-    },
-    youtubev3: (res, req) => {
-        const ytlist = require('youtube-playlist');
-
-        const url = 'https://www.youtube.com/playlist?list=PLzXDRSq8o2GNnjHqr3z6P1LRFGw3RY0fB';
-
-        ytlist(url, 'id').then(res => {
-            console.log(res);
-            /* Object
-            { data:
-             { playlist:
-                [ 'https://youtube.com/watch?v=bgU7FeiWKzc',
-                  'https://youtube.com/watch?v=3PUVr8jFMGg',
-                  'https://youtube.com/watch?v=3pXVHRT-amw',
-                  'https://youtube.com/watch?v=KOVc5o5kURE' ] } }
-             */
-        });
-    },
-    // &order=viewCount
-    // "nextPageToken": "CAIQAA", thay đổi vào pageToken=CAIQAA sẽ next trang
-    // "prevPageToken": "CAEQAQ",
-    // list=PLzXDRSq8o2GNnjHqr3z6P1LRFGw3RY0fB
-    // channelId=UCpd1Gf-SZjc_5ce5vVq5FTg tìm kiếm theo chanel
-    // q=Preyta& tìm kiếm theo key
-    //  https://www.googleapis.com/youtube/v3/search?key=AIzaSyCwwxGuObftytgmOoogEoAyNC0TMZwnOKI&channelId=UCpd1Gf-SZjc_5ce5vVq5FTg&part=snippet,id&order=date&maxResults=10&q=Preyta&list=PLzXDRSq8o2GNnjHqr3z6P1LRFGw3RY0fB&type=video&pageToken=CAIQAA
-    youtubev4: async (req, res) => {
-        await axios.get(`https://www.googleapis.com/youtube/v3/search?key=AIzaSyCwwxGuObftytgmOoogEoAyNC0TMZwnOKI&channelId=UCpd1Gf-SZjc_5ce5vVq5FTg&part=snippet,id&order=date&maxResults=10&type=video&pageToken=CAIQAA`).then(data => {
+    getListPlaylistFromChanel: async (req, res) => {
+        var strURL = 'https://youtube.googleapis.com/youtube/v3/playlists?key=AIzaSyCwwxGuObftytgmOoogEoAyNC0TMZwnOKI'
+        var strPart = '&part=snippet&maxResults=20'
+        var strIDPlaylist = '&channelId=UCpd1Gf-SZjc_5ce5vVq5FTg'
+        await axios.get(strURL + strPart + strIDPlaylist).then(data => {
             if (data) {
                 var array = [];
                 data.data.items.forEach(item => {
@@ -180,15 +122,62 @@ module.exports = {
             }
         })
     },
-
-    googleLogin: async (req, res) => {
-        passport.authenticate('google', { scope: ['profile', 'email'] })
-    },
-    googleCallback: async (req, res) => {
-        passport.authenticate('google', { failureRedirect: '/failed' }),
-            function (req, res) {
-                // Successful authentication, redirect home.
-                res.redirect('/good');
+    getVideoFromPlaylist: async (req, res) => {
+        var strURL = 'https://youtube.googleapis.com/youtube/v3/playlistItems?key=AIzaSyCwwxGuObftytgmOoogEoAyNC0TMZwnOKI'
+        var strPart = '&part=snippet&maxResults=20'
+        var strIDPlaylist = '&playlistId=PLzXDRSq8o2GNnjHqr3z6P1LRFGw3RY0fB'
+        await axios.get(strURL + strPart + strIDPlaylist).then(data => {
+            if (data) {
+                var array = [];
+                data.data.items.forEach(item => {
+                    array.push({
+                        name: item.snippet.title,
+                    })
+                })
+                // console.log(data);
+                var result = {
+                    array: array,
+                    all: data.data.items.length
+                }
+                res.json(result);
             }
+            else {
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+        })
+    },
+    // &order=viewCount
+    // "nextPageToken": "CAIQAA", thay đổi vào pageToken=CAIQAA sẽ next trang
+    // "prevPageToken": "CAEQAQ",
+    // list=PLzXDRSq8o2GNnjHqr3z6P1LRFGw3RY0fB
+    // channelId=UCpd1Gf-SZjc_5ce5vVq5FTg tìm kiếm theo chanel
+    // q=Preyta& tìm kiếm theo key
+    //  https://www.googleapis.com/youtube/v3/search?key=AIzaSyCwwxGuObftytgmOoogEoAyNC0TMZwnOKI&channelId=UCpd1Gf-SZjc_5ce5vVq5FTg&part=snippet,id&order=date&maxResults=10&q=Preyta&list=PLzXDRSq8o2GNnjHqr3z6P1LRFGw3RY0fB&type=video&pageToken=CAIQAA
+    getVideoFromChanel: async (req, res) => {
+        var body = res.body;
+        var stringURL = 'https://www.googleapis.com/youtube/v3/search?key=AIzaSyCwwxGuObftytgmOoogEoAyNC0TMZwnOKI'
+        var stringIDChanel = '&channelId=UCpd1Gf-SZjc_5ce5vVq5FTg'
+        var strPart = '&part=snippet,id&order=date'
+        var maxResults = '&maxResults=10&type=video'
+        var pageToken = '&pageToken=CAIQAA'
+        await axios.get(stringURL + stringIDChanel + strPart + maxResults + pageToken).then(data => {
+            if (data) {
+                var array = [];
+                data.data.items.forEach(item => {
+                    array.push({
+                        name: item.snippet.title,
+                    })
+                })
+                // console.log(data);
+                var result = {
+                    array: array,
+                    all: data.data.items.length
+                }
+                res.json(result);
+            }
+            else {
+                res.json(Result.SYS_ERROR_RESULT)
+            }
+        })
     },
 }
