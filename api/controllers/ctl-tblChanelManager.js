@@ -7,7 +7,9 @@ var database = require('../database');
 async function deleteRelationshiptblChanelManager(db, listID) {
     await mtblChanelManager(db).destroy({
         where: {
-            ID: { [Op.in]: listID }
+            ID: {
+                [Op.in]: listID
+            }
         }
     })
 }
@@ -25,8 +27,8 @@ module.exports = {
                                 id: data.ID,
                                 name: data.Name ? data.Name : '',
                                 code: data.Code ? data.Code : '',
-                                createDate: data.CreateDate ? data.CreateDate : null,
                                 editDate: data.EditDate ? data.EditDate : null,
+                                createDate: data.CreateDate ? data.CreateDate : null,
                             }
                             var result = {
                                 obj: obj,
@@ -51,14 +53,15 @@ module.exports = {
     // add_tbl_chanel_manager
     addtblChanelManager: (req, res) => {
         let body = req.body;
+        let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
         database.connectDatabase().then(async db => {
             if (db) {
                 try {
                     mtblChanelManager(db).create({
-                        Name: body.name ? body.name : '',
                         Code: body.code ? body.code : '',
-                        CreateDate: body.createDate ? body.createDate : null,
-                        EditDate: body.editDate ? body.editDate : null,
+                        Name: body.name ? body.name : '',
+                        CreateDate: now,
+                        EditDate: now,
                     }).then(data => {
                         var result = {
                             status: Constant.STATUS.SUCCESS,
@@ -81,23 +84,13 @@ module.exports = {
         database.connectDatabase().then(async db => {
             if (db) {
                 try {
+                    let now = moment().format('YYYY-MM-DD HH:mm:ss.SSS');
                     let update = [];
                     if (body.code || body.code === '')
                         update.push({ key: 'Code', value: body.code });
                     if (body.name || body.name === '')
                         update.push({ key: 'Name', value: body.name });
-                    if (body.createDate || body.createDate === '') {
-                        if (body.createDate === '')
-                            update.push({ key: 'CreateDate', value: null });
-                        else
-                            update.push({ key: 'CreateDate', value: body.createDate });
-                    }
-                    if (body.editDate || body.editDate === '') {
-                        if (body.editDate === '')
-                            update.push({ key: 'EditDate', value: null });
-                        else
-                            update.push({ key: 'EditDate', value: body.editDate });
-                    }
+                    update.push({ key: 'CreateDate', value: now });
                     database.updateTable(update, mtblChanelManager(db), body.id).then(response => {
                         if (response == 1) {
                             res.json(Result.ACTION_SUCCESS);
@@ -147,26 +140,51 @@ module.exports = {
                     //     var data = JSON.parse(body.dataSearch)
 
                     //     if (data.search) {
-                    //         where = [
-                    //             { FullName: { [Op.like]: '%' + data.search + '%' } },
-                    //             { Address: { [Op.like]: '%' + data.search + '%' } },
-                    //             { CMND: { [Op.like]: '%' + data.search + '%' } },
-                    //             { EmployeeCode: { [Op.like]: '%' + data.search + '%' } },
+                    //         where = [{
+                    //                 FullName: {
+                    //                     [Op.like]: '%' + data.search + '%'
+                    //                 }
+                    //             },
+                    //             {
+                    //                 Address: {
+                    //                     [Op.like]: '%' + data.search + '%'
+                    //                 }
+                    //             },
+                    //             {
+                    //                 CMND: {
+                    //                     [Op.like]: '%' + data.search + '%'
+                    //                 }
+                    //             },
+                    //             {
+                    //                 EmployeeCode: {
+                    //                     [Op.like]: '%' + data.search + '%'
+                    //                 }
+                    //             },
                     //         ];
                     //     } else {
-                    //         where = [
-                    //             { FullName: { [Op.ne]: '%%' } },
-                    //         ];
+                    //         where = [{
+                    //             FullName: {
+                    //                 [Op.ne]: '%%'
+                    //             }
+                    //         }, ];
                     //     }
                     //     whereOjb = {
-                    //         [Op.and]: [{ [Op.or]: where }],
-                    //         [Op.or]: [{ ID: { [Op.ne]: null } }],
+                    //         [Op.and]: [{
+                    //             [Op.or]: where
+                    //         }],
+                    //         [Op.or]: [{
+                    //             ID: {
+                    //                 [Op.ne]: null
+                    //             }
+                    //         }],
                     //     };
                     //     if (data.items) {
                     //         for (var i = 0; i < data.items.length; i++) {
                     //             let userFind = {};
                     //             if (data.items[i].fields['name'] === 'HỌ VÀ TÊN') {
-                    //                 userFind['FullName'] = { [Op.like]: '%' + data.items[i]['searchFields'] + '%' }
+                    //                 userFind['FullName'] = {
+                    //                     [Op.like]: '%' + data.items[i]['searchFields'] + '%'
+                    //                 }
                     //                 if (data.items[i].conditionFields['name'] == 'And') {
                     //                     whereOjb[Op.and].push(userFind)
                     //                 }
@@ -194,10 +212,10 @@ module.exports = {
                             var obj = {
                                 stt: stt,
                                 id: Number(element.ID),
-                                name: element.Name ? element.Name : '',
-                                code: element.Code ? element.Code : '',
-                                createDate: element.CreateDate ? element.CreateDate : null,
-                                editDate: element.EditDate ? element.EditDate : null,
+                                name: data.Name ? data.Name : '',
+                                code: data.Code ? data.Code : '',
+                                editDate: data.EditDate ? data.EditDate : null,
+                                createDate: data.CreateDate ? data.CreateDate : null,
                             }
                             array.push(obj);
                             stt += 1;
